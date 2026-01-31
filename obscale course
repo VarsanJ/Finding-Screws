@@ -1,0 +1,14 @@
+// Define an array, 1 represents CW, 0 represents CCW, this is manually inputted from the track
+
+// Define a constant c1, which is distance to go around to form half a square around
+
+
+// LOOP AROUND UNTIL ALL ELEMENTS OF LOOP ARRAY ARE COMPLETED 
+// Proceed forwards while the colour is red
+
+
+// Once the colour is no longer red, rotate based on the array until the colour is aligned with red
+
+
+// Once an object is detected, rotate 90 deg CCW, go forwards c1, rotate CW, go forwards c1, rotate CW, go forwards until pass red, rotate CCW to hit red, and proceed
+
