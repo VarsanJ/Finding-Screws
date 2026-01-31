@@ -1,0 +1,31 @@
+// Start off with setup for the pins
+
+// Move to the initial ball pick up location
+
+// Pick up the the object
+
+// Move the object to the green deposit
+
+// Go up the curved ramp (L Motor < R Motor)
+
+// Time Wait
+
+// Detect black location
+
+// Move to black location 
+
+// Push to the blue
+
+// Go down the curved ramp
+
+// Go to the initial pickup location
+
+// Collect the object
+
+// Move to the red deposit
+
+// Navigate obstacle course by following red line
+
+// Conditional action upon detection of obstacle in front
+
+
