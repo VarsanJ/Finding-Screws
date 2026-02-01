@@ -1,86 +1,91 @@
 #include <Servo.h>
 
-// --- PINS (Must match your Main File) ---
+// Component Pins -  - Inputted From Hardware - Might Require Changes Based on Config
 const int LEFT_IR = A0;   
 const int RIGHT_IR = A1;
 const int TRIG_PIN = 4; 
 const int ECHO_PIN = 3; 
 const int SERVO_PIN = 9; 
 
-// Motor Pins
-const int ENA = 5; const int IN1 = 6; const int IN2 = 7;
-const int IN3 = 8; const int IN4 = 9; const int ENB = 10;
+// Motor Pins - Inputted From Hardware - Might Require Changes Based on Config
+const int ENA = 5; 
+const int IN1 = 6; 
+const int IN2 = 7;
+const int IN3 = 8; 
+const int IN4 = 9; 
+const int ENB = 10;
 
-// --- TUNING VARIABLES (Calibrate these on the floor!) ---
+// --- TUNING VARIABLES - Inputted From Testing -- Might Require Changes live from test data
 const int RED_SPEED = 150;      
 const int TURN_SPEED = 150;     
 const int REVERSE_SPEED = -100; // Negative speed for snappy turns
 const int OBSTACLE_DIST = 15;   // Dodge if wall is closer than 15cm
 
-// TIME VARIABLES
+// TIME VARIABLES - Inputted From Testing -- Might Require Changes live from test data
 const int TIME_FOR_15CM = 500;  
 const int TIME_FOR_30CM = 1000; 
 const int TIME_TURN_90 = 600;   
 const int FORK_TIMEOUT = 1500;  // Ignore left fork for first 1.5s
 
-// SERVO POSITIONS
+// SERVO POSITIONS - Program Constants -- No modifications from config/testing
 const int ARM_DOWN = 100;       
 const int ARM_UP = 0;
 
-// DODGE VARIABLES
+// DODGE VARIABLES - Inputted From Testing -- Might Require Changes live from test data
 const int DODGE_TURN_TIME = 600;  
 const int DODGE_OUT_TIME = 600;   
 const int DODGE_PASS_TIME = 1200; 
 
+// Declares and initializes the servo arm
 Servo arm;
 
 void runRedObstacleCourse() {
-  Serial.println("Red Course: Full System Active...");
+  // Purpose: General program to run the obstacle course
+  // Last Modified: 2026-01-331
   
-  // Setup Pins
+  // Assign IO to the pins
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
+
+  // Initialize servo motor used for the robot
   arm.attach(SERVO_PIN);
   arm.write(ARM_UP); // Start with arm up
 
-  long startTime = millis();
+  // Variables used specific to the design of the obstacle course
+  long startTime = millis(); // How many ms after starting
   bool forkCleared = false;
   int blueTapeCount = 0; // 0 = First Task, 1 = Second Task
 
-  // --- MAIN LOOP ---
+  // Main Program Loop
   while (true) {
+    // Inititializes the variables needed and gets data
     int leftVal = digitalRead(LEFT_IR);
     int rightVal = digitalRead(RIGHT_IR);
     String detectedColor = detectColor(); 
     int distance = readDistance();
 
-    // --- PRIORITY 1: OBSTACLE AVOIDANCE (Safety) ---
-    // Only dodge if we are NOT currently on a Blue Tape task
-    // (distance > 0 filters out sensor glitches)
+    // Top Priority: Obstacle Avoidance
     if (distance > 0 && distance < OBSTACLE_DIST) {
-       Serial.println("Obstacle Detected! Initiating Dodge...");
        executeObstacleDodge();
     }
-
-    // --- PRIORITY 2: BLUE TAPE TASKS ---
-    else if (detectedColor == "BLUE") {
+    // Program Objective: Tasks necessary to complete obstacle
+    else if (detectedColor == "BLUE") { // These tasks are only to occur when the robot is on blue tape
       
-      // TASK 1: Cube Pickup
+      // TASK 1: Cube Pickup on First Blue Tape
       if (blueTapeCount == 0) {
-        Serial.println("1st Blue Tape: Cube Pickup...");
         executeFirstTask();
         blueTapeCount++; 
       }
       
-      // TASK 2: Back-and-Forth Maneuver
+      // TASK 2: Back-and-Forth Maneuver On Second Blue Tape
       else if (blueTapeCount == 1) {
-        Serial.println("2nd Blue Tape: Back-and-Forth...");
         executeSecondTask();
         blueTapeCount++; 
       }
     }
 
-    // --- PRIORITY 3: START FORK PROTECTION ---
+    // The fork in the path must be navigatable correctly (right order)
+      '
     // For the first 1.5 seconds, we IGNORE the Left Sensor to pass the fork.
     else if (millis() - startTime < FORK_TIMEOUT) {
       if (rightVal == 1) { 
@@ -90,9 +95,11 @@ void runRedObstacleCourse() {
       }
     } 
     
-    // --- PRIORITY 4: STANDARD LINE FOLLOWING ---
+    // General Program: Following the line
     else {
-      if (!forkCleared) { forkCleared = true; }
+      if (!forkCleared) {  // The Fork would now have been cleared
+        forkCleared = true; 
+      }
       
       if (leftVal == 0 && rightVal == 0) { 
         // Both White -> Drive Straight
@@ -111,43 +118,50 @@ void runRedObstacleCourse() {
     // --- PRIORITY 5: FINISH LINE ---
     if (detectedColor == "BLACK") {
       stopMotors();
-      Serial.println("Red Course Complete. Mission Accomplished.");
-      break; // EXIT THE LOOP
+      break; // The black line reached indicates that the program is complete
     }
   }
 }
 
-// ==========================================
-//           TASK 1: CUBE PICKUP
-// ==========================================
 void executeFirstTask() {
+  // Function Purpose: Execute the first task related to the cube
+  // Last Modified: 2026-01-31
+
+  // First ensure that the vehicle is stopped
   stopMotors();
   delay(500);
 
-  // 1. Align (15cm)
-  moveRaw(150, 150); delay(TIME_FOR_15CM); stopMotors();
+  // 1. Align (15cm, obtained measurement)
+  moveRaw(150, 150); 
+  delay(TIME_FOR_15CM); 
+  stopMotors();
   
-  // 2. Turn Right 90
-  moveRaw(150, -150); delay(TIME_TURN_90); stopMotors();
+  // 2. Turn Right 90 degrees
+  moveRaw(150, -150); 
+  delay(TIME_TURN_90); 
+  stopMotors();
   
   // 3. Grab Cube
-  arm.write(ARM_DOWN); delay(500); 
-  moveRaw(100, 100); delay(600); stopMotors(); // Drive to cube
-  arm.write(ARM_UP); delay(1000); // Lift
+  arm.write(ARM_DOWN); 
+  delay(500); 
+  moveRaw(100, 100); 
+  delay(600); 
+  stopMotors(); // Drive to cube
+  arm.write(ARM_UP); 
+  delay(1000); // Lift
   
   // 4. Return (Spin Left until Red)
-  Serial.println("Returning to path...");
   moveRaw(-150, 150); 
-  while (detectColor() != "RED") { delay(10); }
+  while (detectColor() != "RED") { 
+    delay(10); 
+  }
   stopMotors();
   
   // Nudge forward slightly
-  moveRaw(150, 150); delay(200); 
+  moveRaw(150, 150); 
+  delay(200); 
 }
 
-// ==========================================
-//           TASK 2: BACK-AND-FORTH
-// ==========================================
 void executeSecondTask() {
   stopMotors();
   delay(500);
@@ -167,12 +181,10 @@ void executeSecondTask() {
   arm.write(ARM_UP); delay(500);
   moveRaw(150, 150); delay(TIME_FOR_30CM); stopMotors();
 
-  // 5. Turn Right 90 (Clockwise) to Resume
-  // We spin Right until we find the Red Line again
-  Serial.println("Creating alignment...");
+  // 5. Turn Right 90 (Clockwise) to Resume until red line found
   moveRaw(150, -150); 
   long searchStart = millis();
-  while (detectColor() != "RED" && (millis() - searchStart < 3000)) {
+  while (detectColor() != "RED" && (millis() - searchStart < 3000)) { // 3s used as safety threshold
     delay(10);
   }
   
@@ -180,73 +192,106 @@ void executeSecondTask() {
   moveRaw(150, 150); delay(200); 
 }
 
-// ==========================================
-//           OBSTACLE DODGE
-// ==========================================
 void executeObstacleDodge() {
+  // Function Purpose: Design sequence of steps to dodge a detected obstacle
+  // Last Modified: 2026-01-31
+  
   stopMotors();
   delay(200);
 
-  // 1. Turn Left (Face Away)
-  moveRaw(-150, 150); delay(DODGE_TURN_TIME);
+  // 1. Turn Left since can not proceed straight
+  moveRaw(-150, 150); 
+  delay(DODGE_TURN_TIME);
   
   // 2. Drive Out
-  moveRaw(150, 150); delay(DODGE_OUT_TIME);
+  moveRaw(150, 150); 
+  delay(DODGE_OUT_TIME);
   
-  // 3. Turn Right (Parallel)
-  moveRaw(150, -150); delay(DODGE_TURN_TIME);
+  // 3. Turn Right to ensure that the movement is parallel to the red tape
+  moveRaw(150, -150); 
+  delay(DODGE_TURN_TIME);
   
-  // 4. Drive Past
-  moveRaw(150, 150); delay(DODGE_PASS_TIME);
+  // 4. Drive Past the obstacle while remaining parallel to the red tape
+  moveRaw(150, 150); 
+  delay(DODGE_PASS_TIME);
   
-  // 5. Turn Right (Towards Line)
-  moveRaw(150, -150); delay(DODGE_TURN_TIME);
+  // 5. Turn Right to return to the red tape once a sufficient distance has been passed
+  moveRaw(150, -150); 
+  delay(DODGE_TURN_TIME);
   
-  // 6. Hunt for Red Line (Center Sensor)
+  // 6. Return to the red line until after it has been detected
   moveRaw(150, 150);
   long huntStart = millis();
-  while (detectColor() != "RED" && (millis() - huntStart < 3000)) { delay(10); }
+  while (detectColor() != "RED" && (millis() - huntStart < 3000)) { // Ensures a safety threshold of 3s
+    delay(10); 
+  }
   stopMotors();
 
-  // 7. Align (Spin Left until Right Sensor hits Red)
-  // This ensures we are straddling the line correctly
+  // 7. Align (Spin Left until Right Sensor hits Red) with the direction of the path
   moveRaw(-150, 150);
   long alignStart = millis();
-  while (digitalRead(RIGHT_IR) == 0 && (millis() - alignStart < 2000)) { delay(10); }
+  while (digitalRead(RIGHT_IR) == 0 && (millis() - alignStart < 2000)) { // Ensures a safety threshold of 2s
+    delay(10); 
+  }
   stopMotors();
   
   delay(200);
 }
 
-// --- HELPER FUNCTIONS ---
 int readDistance() {
-  digitalWrite(TRIG_PIN, LOW); delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
+  // Function Purpose: Determine the distance away for an object detected by the ultrasonic range finder
+  // Last Modified: 2026-01-31
+
+  // Initializs the range finder, used to ensure accuracy
+  digitalWrite(TRIG_P-IN, LOW); 
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH); 
+  delayMicroseconds(10);
   digitalWrite(TRIG_PIN, LOW);
+
+  // Collects duration and converts unit
   long duration = pulseIn(ECHO_PIN, HIGH);
   return duration * 0.034 / 2;
 }
 
 void moveRaw(int left, int right) {
+  // Function Purpose: Enable Rotational Movement when Necessary
+  // Last Edited: 2026-01-31
+
+  
   if (left >= 0) {
-    digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
+    // This means that the motor must move left (based on the left sensor)
+    digitalWrite(IN1, HIGH); 
+    digitalWrite(IN2, LOW);
     analogWrite(ENA, left);
   } else {
-    digitalWrite(IN1, LOW); digitalWrite(IN2, HIGH);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
     analogWrite(ENA, -left);
   }
   
   if (right >= 0) {
-    digitalWrite(IN3, HIGH); digitalWrite(IN4, LOW);
+    // This means that the motor must move right (based on the right sensor)
+    digitalWrite(IN3, HIGH); 
+    digitalWrite(IN4, LOW);
     analogWrite(ENB, right);
   } else {
-    digitalWrite(IN3, LOW); digitalWrite(IN4, HIGH);
+    digitalWrite(IN3, LOW); 
+    digitalWrite(IN4, HIGH);
     analogWrite(ENB, -right);
   }
 }
 
 void stopMotors() {
-  analogWrite(ENA, 0); analogWrite(ENB, 0);
-  digitalWrite(IN1, LOW); digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW); digitalWrite(IN4, LOW);
+  // Function Purpose: Disable the motor controlling the wheels to prevent movement
+  // Last Edited: 2026-01-31 
+  
+  // Set motor speed controls to zero
+  analogWrite(ENA, 0); 
+  analogWrite(ENB, 0);
+  // Disable Motor Pins to stop wheel
+  digitalWrite(IN1, LOW); 
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW); 
+  digitalWrite(IN4, LOW);
 }
