@@ -1,13 +1,15 @@
-// --- PINS (Match with your team's main file) ---
+// IR Sensors
 const int LEFT_IR = A0;   
 const int RIGHT_IR = A1;
-// Motor pins
+
+// Motor Pins
 const int ENA = 5; 
 const int IN1 = 6; 
 const int IN2 = 7;
 const int IN3 = 8; 
 const int IN4 = 9; 
 const int ENB = 10;
+
 
 void runStartSequence() {
   Serial.println("Start: Following Black Line...");
