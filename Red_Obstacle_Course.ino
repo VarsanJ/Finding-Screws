@@ -1,10 +1,10 @@
 #include <Servo.h>
 
-// --- PINS (Match your main file) ---
+// --- PINS ---
 const int LEFT_IR = A0;   
 const int RIGHT_IR = A1;
-const int TRIG_PIN = 4; // Ultrasonic Trig
-const int ECHO_PIN = 3; // Ultrasonic Echo
+const int TRIG_PIN = 4; 
+const int ECHO_PIN = 3; 
 const int SERVO_PIN = 9; 
 
 // Motor Pins
@@ -13,61 +13,67 @@ const int IN3 = 8; const int IN4 = 9; const int ENB = 10;
 
 // TUNING VARIABLES
 const int RED_SPEED = 150;      
-const int FORK_TIMEOUT = 1500;  // Time to ignore the left fork
-const int TIME_FOR_15CM = 500;  // Align with box
-const int TIME_TURN_90 = 600;   // Spin Right
+const int TURN_SPEED = 150;     // Speed of the outer wheel
+const int REVERSE_SPEED = -100; // Speed of the inner wheel (Negative = Tighter Turn)
+
+const int FORK_TIMEOUT = 1500;  
+const int TIME_FOR_15CM = 500;  
+const int TIME_TURN_90 = 600;   
 const int ARM_DOWN = 100;       
 const int ARM_UP = 0;
 
 Servo arm;
 
 void runRedObstacleCourse() {
-  Serial.println("Red Course Started...");
+  Serial.println("Red Course: Automatic Steering Active...");
   arm.attach(SERVO_PIN);
-  arm.write(ARM_UP); // Ensure arm starts UP
+  arm.write(ARM_UP); 
 
   long startTime = millis();
   bool forkCleared = false;
-  bool bluePickupDone = false; // Flag to ensure we only do it once
+  bool bluePickupDone = false; 
 
   while (true) {
     int leftVal = digitalRead(LEFT_IR);
     int rightVal = digitalRead(RIGHT_IR);
-    String detectedColor = detectColor(); // Get color from center sensor
+    String detectedColor = detectColor(); 
 
-    // --- 1. BLUE TAPE TRIGGER (The Pickup) ---
+    // --- 1. BLUE TAPE TRIGGER ---
     if (detectedColor == "BLUE" && !bluePickupDone) {
-      Serial.println("Blue Tape Detected! Initiating Pickup...");
+      Serial.println("Blue Tape! Picking up...");
       executeRedPickup();
       bluePickupDone = true; 
-      // After pickup, we are back on Red. loop continues.
     }
 
-    // --- 2. FORK CLEARING LOGIC (First 1.5 Seconds) ---
+    // --- 2. FORK CLEARING (First 1.5s) ---
     else if (millis() - startTime < FORK_TIMEOUT) {
-      // Blind mode to ignore left fork
       if (rightVal == 1) {
-        moveRaw(RED_SPEED, 0); // Correct Right Drift
+        moveRaw(RED_SPEED, 0); // Keep old gentle correction for the fork
       } else {
-        moveRaw(RED_SPEED, RED_SPEED); // Drive Straight (Ignore Left)
+        moveRaw(RED_SPEED, RED_SPEED); 
       }
     } 
     
-    // --- 3. STANDARD RED LINE FOLLOWING ---
+    // --- 3. AUTOMATIC "SNAPPY" TURNING ---
     else {
       if (!forkCleared) {
-        Serial.println("Fork Cleared. Normal Logic Resumed.");
+        Serial.println("Fork Cleared. Engaging Tight Steering.");
         forkCleared = true;
       }
 
       if (leftVal == 0 && rightVal == 0) {
+        // Both White: Perfect! Drive Straight.
         moveRaw(RED_SPEED, RED_SPEED);
       } 
       else if (leftVal == 1) {
-        moveRaw(0, RED_SPEED); // Turn Left
+        // Left Sensor sees Red (Drifting Right or Turn Left)
+        // ACTION: Reverse Left Wheel to snap back quickly
+        moveRaw(REVERSE_SPEED, TURN_SPEED); 
       } 
       else if (rightVal == 1) {
-        moveRaw(RED_SPEED, 0); // Turn Right
+        // Right Sensor sees Red (Drifting Left or Turn Right)
+        // ACTION: Reverse Right Wheel to snap back quickly
+        moveRaw(TURN_SPEED, REVERSE_SPEED); 
       }
     }
     
@@ -100,11 +106,9 @@ void executeRedPickup() {
 
   // STEP 3: Approach & Insert Arm
   Serial.println("Approaching Box...");
-  arm.write(ARM_DOWN); // Lower Arm First
+  arm.write(ARM_DOWN); 
   delay(500);
   
-  // Drive forward blindly/timed to insert arm
-  // (Adjust time to match distance to box)
   moveRaw(100, 100); 
   delay(600); 
   stopMotors();
@@ -115,24 +119,22 @@ void executeRedPickup() {
   delay(1000);
 
   // STEP 5: Return to Path (Counter-Clockwise Spin)
-  // We spin LEFT until we see the Red Line again
   Serial.println("Scanning Left for Red Path...");
   moveRaw(-150, 150); // Spin Left (CCW)
   
   while (detectColor() != "RED") {
-    delay(10); // Wait for sensor to hit Red
+    delay(10); 
   }
   
   stopMotors();
   Serial.println("Red Path Regained! Resuming...");
   delay(500);
   
-  // Nudge forward slightly to ensure IR sensors align
   moveRaw(150, 150);
   delay(100);
 }
 
-// --- HELPERS (Standard) ---
+// --- HELPERS ---
 void moveRaw(int left, int right) {
   if (left >= 0) {
     digitalWrite(IN1, HIGH); digitalWrite(IN2, LOW);
