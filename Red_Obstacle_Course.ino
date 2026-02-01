@@ -85,7 +85,7 @@ void runRedObstacleCourse() {
     }
 
     // The fork in the path must be navigatable correctly (right order)
-      '
+      
     // For the first 1.5 seconds, we IGNORE the Left Sensor to pass the fork.
     else if (millis() - startTime < FORK_TIMEOUT) {
       if (rightVal == 1) { 
