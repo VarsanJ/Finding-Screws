@@ -15,7 +15,7 @@ const int IN3 = 8;
 const int IN4 = 9; 
 const int ENB = 10;
 
-// --- TUNING VARIABLES - Inputted From Testing -- Might Require Changes live from test data
+// TUNING VARIABLES - Inputted From Testing -- Might Require Changes live from test data
 const int RED_SPEED = 150;      
 const int TURN_SPEED = 150;     
 const int REVERSE_SPEED = -100; // Negative speed for snappy turns
