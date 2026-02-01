@@ -109,13 +109,49 @@ void runGreenSection() {
   delay(TIME_FOR_10CM);
   stopMotors();
   
-  // Find Green Path Again
+  // STEP 8: Find Green Path Again & Return to Start
   // Spin Clockwise until see Green
   while (detectColor() != "GREEN") {
     moveRaw(150, -150);
   }
-  
   stopMotors();
+  
+  // STEP 9: RETURN TO START
+  Serial.println("Returning to start...");
+  returnToStart();
+  
+  // STEP 10: Final Stop at Start
+  stopMotors();
+  Serial.println("Green Section Complete - At Start Position");
+}
+
+void returnToStart() {
+  // Function Purpose: Navigate back to the starting position
+  // Last Modified: 2026-01-31
+  
+  // Follow green line backwards to start
+  // Robot should reverse along the path OR turn around and drive forward
+  
+  // Option A: Turn around and follow line back
+  moveRaw(150, -150); // Spin 180
+  delay(TIME_TURN_180);
+  stopMotors();
+  
+  // Follow green line until we reach the start (black line/marker)
+  while (detectColor() != "BLACK") {
+    lineFollow();
+  }
+  
+  // Reached black start line
+  stopMotors();
+  delay(200);
+  
+  // Move forward slightly to position at exact start
+  moveRaw(150, 150);
+  delay(TIME_FOR_10CM);
+  stopMotors();
+  
+  Serial.println("Reached start position");
 }
 
 int readDistance() {
@@ -266,5 +302,3 @@ void lineFollow() {
     moveRaw(150, 0);   // Turn Right
   }
 }
-
-    
