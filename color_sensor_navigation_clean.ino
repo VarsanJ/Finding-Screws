@@ -120,31 +120,3 @@ String identifyColor(int r, int g, int b) {
   return "UNKNOWN";
 }
 
-void navigateInward() {
-  // TODO: Add motor control
-  // Move toward center of target
-  // Example:
-  // moveForward();
-}
-
-void handleWhiteSpace() {
-  // TODO: Add motor control
-  // Continue moving inward or adjust course
-  // Example:
-  // moveForward();
-}
-
-void reachedCenter() {
-  stopRobot();
-  
-  // Stop program - ready for code reupload for shooting
-  while(1);
-}
-
-void stopRobot() {
-  // TODO: Add motor stop code
-  // Example:
-  // digitalWrite(motorLeft, LOW);
-  // digitalWrite(motorRight, LOW);
-  // analogWrite(motorSpeed, 0);
-}
