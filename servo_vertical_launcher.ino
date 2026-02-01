@@ -1,34 +1,40 @@
-// SERVO BALL LAUNCHER
-// Moves vertically up, then swings forward to launch ball
+// ROBOTIC ARM BALL PUSHER
+// Servo at elbow joint - lifts arm up, then pushes forward
 // Upload after reaching black center
 
 #include <Servo.h>
 
-Servo shooter;
-const int servoPin = 13;  // Change this if using different pin
+Servo elbowServo;  // Servo at the elbow joint
+const int servoPin = 13;  // Change if using different pin
 
-// Servo positions (adjust these based on your setup!)
-const int START_POSITION = 90;    // Horizontal/resting position
-const int UP_POSITION = 0;        // Vertical/up position (90° up from start)
-const int FORWARD_POSITION = 180; // Forward swing position (90° forward from start)
+// Servo positions for elbow joint
+const int ARM_DOWN = 90;      // Arm resting (horizontal/down)
+const int ARM_UP = 0;         // Arm lifted up (elbow bent up)
+const int ARM_PUSH = 180;     // Arm extended forward (pushing motion)
 
-// Timing (adjust for more/less force)
-const int LIFT_TIME = 500;        // ms to move up
-const int PAUSE_TIME = 200;       // ms to pause at top
-const int SWING_TIME = 100;       // ms to swing forward (faster = more force)
+// You might need to reverse these if your servo is mounted differently:
+// const int ARM_DOWN = 90;
+// const int ARM_UP = 180;
+// const int ARM_PUSH = 0;
+
+// Timing
+const int LIFT_TIME = 600;    // Time to lift arm up
+const int PAUSE_TIME = 200;   // Pause at top before pushing
+const int PUSH_TIME = 300;    // Time for push motion
 
 void setup() {
-  shooter.attach(servoPin);
+  elbowServo.attach(servoPin);
   
-  // Start at resting position
-  shooter.write(START_POSITION);
+  // Start with arm down/resting
+  elbowServo.write(ARM_DOWN);
   delay(1000);
   
-  // Launch sequence
-  launchBall();
+  // Execute push sequence
+  pushBall();
   
-  // Return to start
-  shooter.write(START_POSITION);
+  // Return to resting position
+  elbowServo.write(ARM_DOWN);
+  delay(500);
   
   // Done
   while(1);
@@ -38,18 +44,57 @@ void loop() {
   // Not used
 }
 
-void launchBall() {
-  // Step 1: Move UP (vertical)
-  shooter.write(UP_POSITION);
+void pushBall() {
+  // Step 1: Lift arm UP (bend elbow)
+  elbowServo.write(ARM_UP);
   delay(LIFT_TIME);
   
   // Step 2: Brief pause at top
   delay(PAUSE_TIME);
   
-  // Step 3: Swing FORWARD fast to hit ball
-  shooter.write(FORWARD_POSITION);
-  delay(SWING_TIME);
+  // Step 3: PUSH forward (extend arm)
+  elbowServo.write(ARM_PUSH);
+  delay(PUSH_TIME);
   
-  // Step 4: Hold forward position briefly
-  delay(300);
+  // Step 4: Hold push position
+  delay(500);
 }
+
+
+// ==========================================
+// ALTERNATIVE: If you need SLOWER movement
+// ==========================================
+/*
+void pushBallSlow() {
+  // Gradually lift arm up
+  for(int angle = ARM_DOWN; angle >= ARM_UP; angle--) {
+    elbowServo.write(angle);
+    delay(10);  // Smooth motion
+  }
+  
+  delay(PAUSE_TIME);
+  
+  // Push forward fast
+  elbowServo.write(ARM_PUSH);
+  delay(PUSH_TIME);
+}
+*/
+
+
+// ==========================================
+// ALTERNATIVE: If you need MORE FORCE
+// ==========================================
+/*
+void pushBallHard() {
+  // Quick lift
+  elbowServo.write(ARM_UP);
+  delay(300);
+  
+  // FAST push (more force)
+  elbowServo.write(ARM_PUSH);
+  delay(100);  // Very fast = more impact
+}
+*/
+
+
+
