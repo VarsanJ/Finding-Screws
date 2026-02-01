@@ -1,9 +1,10 @@
 // TCS3200 Color Sensor Pins
-const int S0 = 2;
-const int S1 = 3;
-const int S2 = 4;
-const int S3 = 5;
-const int signal = 6;
+const int S0 = 11;
+const int S1 = 12;
+const int S2 = 2;
+const int S3 = 3;
+const int signal = 4;
+
 
 // Variables for color readings
 unsigned long red, green, blue, clear;
