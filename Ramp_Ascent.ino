@@ -1,4 +1,4 @@
-// --- PINS (Must match your team's car_movement.ino) ---
+// IR Sensors
 const int LEFT_IR = A0;   
 const int RIGHT_IR = A1;
 
