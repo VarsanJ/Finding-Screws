@@ -31,7 +31,7 @@ Servo arm;
 const int S0 = 11;
 const int S1 = 12;
 const int S2 = 2;
-const int S3 = 3;
+const int S3 = 1;
 const int signal = 4;
 
 // Variables for color readings
